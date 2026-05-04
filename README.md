@@ -1,5 +1,5 @@
 # 快递盒
-一款简洁实用的快递管理工具，自动识别短信中的快递信息，桌面小组件快速查看待取快递。
+一款Android简洁实用的快递管理工具，自动识别短信中的快递信息，桌面小组件快速查看待取快递。
 小组件效果（只占2格）
 <img width="594" height="251" alt="fae3618660bb4713b23586ca4366b611" src="https://github.com/user-attachments/assets/9c6586ee-82ea-4c7a-baf7-b06939b79ba9" />
 使用说明
