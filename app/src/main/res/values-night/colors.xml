@@ -1,0 +1,12 @@
+<resources><color name="colorPrimary">#ADC6FF</color>
+<color name="colorPrimaryDark">#101B2D</color>
+<color name="colorAccent">#ADC6FF</color>
+<color name="white">#FFFFFF</color>
+<color name="textPrimary">#E5EDFC</color>
+<color name="textSecondary">#B6C4DA</color>
+<color name="textHint">#A4B3C8</color>
+<color name="divider">#34445F</color>
+<color name="background">#101B2D</color>
+<color name="cardBackground">#1B2B43</color>
+<color name="softBlue">#273F68</color>
+<color name="success">#8CD5B1</color></resources>

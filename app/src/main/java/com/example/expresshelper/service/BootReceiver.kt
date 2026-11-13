@@ -13,8 +13,10 @@ import com.example.expresshelper.presentation.widget.WidgetUpdater
 class BootReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
+        if (intent.action == Intent.ACTION_BOOT_COMPLETED || intent.action == Intent.ACTION_MY_PACKAGE_REPLACED) {
             Log.d(TAG, "设备启动完成，更新小组件")
+            SmsSyncWorker.schedule(context)
+            SmsSyncWorker.enqueue(context)
             WidgetUpdater.update(context)
         }
     }

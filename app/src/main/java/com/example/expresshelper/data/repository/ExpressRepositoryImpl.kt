@@ -12,7 +12,8 @@ import javax.inject.Singleton
 
 @Singleton
 class ExpressRepositoryImpl @Inject constructor(
-    private val expressDao: ExpressDao
+    private val expressDao: ExpressDao,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context
 ) : ExpressRepository {
 
     override fun getPendingExpress(): Flow<List<ExpressInfo>> {
@@ -37,14 +38,17 @@ class ExpressRepositoryImpl @Inject constructor(
 
     override suspend fun markAsPicked(id: Long) {
         expressDao.markAsPicked(id)
+        com.example.expresshelper.presentation.widget.WidgetUpdater.update(context)
     }
 
     override suspend fun markAsPending(id: Long) {
         expressDao.markAsPending(id)
+        com.example.expresshelper.presentation.widget.WidgetUpdater.update(context)
     }
 
     override suspend fun deleteById(id: Long) {
         expressDao.deleteById(id)
+        com.example.expresshelper.presentation.widget.WidgetUpdater.update(context)
     }
 
     override fun getPendingCount(): Flow<Int> {
@@ -60,11 +64,12 @@ class ExpressRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getPendingExpressList(): List<ExpressInfo> {
-        return expressDao.getAllExpressForWidget().map { it.toDomain() }
+        return expressDao.getPendingForWidget().map { it.toDomain() }
     }
 
     override suspend fun deleteAll() {
         expressDao.deleteAll()
+        com.example.expresshelper.presentation.widget.WidgetUpdater.update(context)
     }
 
     override suspend fun deletePickedBefore(beforeTime: Long) {

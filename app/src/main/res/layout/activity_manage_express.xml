@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5"
+    android:background="@color/background"
     tools:context=".presentation.manage.ManageExpressActivity">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -16,11 +16,11 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/colorPrimary"
+            android:background="@color/background"
             app:navigationIcon="@drawable/ic_back"
-            app:navigationIconTint="@android:color/white"
+            app:navigationIconTint="@color/textPrimary"
             app:title="管理快递"
-            app:titleTextColor="@android:color/white" />
+            app:titleTextColor="@color/textPrimary" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -103,7 +103,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="暂无快递记录"
-                android:textColor="#999999"
+                android:textColor="@color/textHint"
                 android:textSize="16sp" />
 
         </LinearLayout>

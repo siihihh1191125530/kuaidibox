@@ -7,5 +7,4 @@
     <string name="add_widget_hint">添加桌面小组件，快递信息一目了然</string>
     <string name="empty_icon">空状态图标</string>
     <string name="mark_picked">标记已取</string>
-    <string name="accessibility_service_description">快递盒需要无障碍权限来检测快递通知</string>
 </resources>

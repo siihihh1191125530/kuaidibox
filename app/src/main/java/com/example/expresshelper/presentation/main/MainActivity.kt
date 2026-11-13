@@ -25,6 +25,7 @@ class MainActivity : AppCompatActivity() {
     private val viewModel: MainViewModel by viewModels()
     private lateinit var expressAdapter: ExpressListAdapter
     private var isDialogShowing = false
+    @javax.inject.Inject lateinit var smsEngine: com.example.expresshelper.data.sms.SmsEngine
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,6 +35,34 @@ class MainActivity : AppCompatActivity() {
         setupToolbar()
         setupRecyclerView()
         observeData()
+        binding.tvSmsStatus.setOnClickListener { openSmsSettings() }
+        binding.btnSync.setOnClickListener { syncSms() }
+        binding.btnHistory.setOnClickListener { startActivity(Intent(this, com.example.expresshelper.presentation.manage.ManageExpressActivity::class.java)) }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateSmsStatus()
+        if (smsEngine.has(android.Manifest.permission.READ_SMS)) syncSms()
+    }
+    private fun openSmsSettings() {
+        startActivity(Intent(this, com.example.expresshelper.presentation.settings.SmsSettingsActivity::class.java))
+    }
+    private fun updateSmsStatus() {
+        binding.tvSmsStatus.text = if (smsEngine.has(android.Manifest.permission.RECEIVE_SMS))
+            "短信接收已授权 · 点击检查运行状态" else "开启短信自动识别 · 点击设置"
+    }
+    private fun syncSms() {
+        if (!smsEngine.has(android.Manifest.permission.READ_SMS)) { openSmsSettings(); return }
+        if (!binding.btnSync.isEnabled) return
+        binding.btnSync.isEnabled = false
+        binding.btnSync.text = "补查中…"
+        lifecycleScope.launch {
+            try { smsEngine.scan() }
+            catch (e: kotlinx.coroutines.CancellationException) { throw e }
+            catch (_: Exception) { showMessage("短信补查未完成，请在设置中检查权限") }
+            finally { binding.btnSync.isEnabled = true; binding.btnSync.text = "补查短信"; updateSmsStatus() }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -91,6 +120,7 @@ class MainActivity : AppCompatActivity() {
                 launch {
                     viewModel.pendingExpress.collect { expressList ->
                         expressAdapter.submitList(expressList)
+                        binding.tvSummary.text = if (expressList.isEmpty()) "取件码自动整理，出门一眼看清" else "${expressList.size} 件快递等你领取"
                         updateEmptyView(expressList.isEmpty())
                     }
                 }

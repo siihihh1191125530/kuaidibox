@@ -52,7 +52,8 @@ class ExpressListAdapter(
             binding.tvCode.text = expressInfo.code
 
             // 快递来源 - 不显示关键字，隐藏
-            binding.tvSource.visibility = android.view.View.GONE
+            binding.tvSource.visibility = android.view.View.VISIBLE
+            binding.tvSource.text = expressInfo.source
 
             // 收件时间
             binding.tvTime.text = timeFormat.format(Date(expressInfo.receivedTime))
@@ -65,6 +66,11 @@ class ExpressListAdapter(
                 binding.tvLocation.visibility = android.view.View.GONE
             }
 
+            binding.tvCode.setOnClickListener {
+                val clipboard = binding.root.context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                clipboard.setPrimaryClip(android.content.ClipData.newPlainText("取件码", expressInfo.code))
+                android.widget.Toast.makeText(binding.root.context, "取件码已复制", android.widget.Toast.LENGTH_SHORT).show()
+            }
             // 点击查看短信内容
             binding.root.setOnClickListener {
                 onItemClick(expressInfo)

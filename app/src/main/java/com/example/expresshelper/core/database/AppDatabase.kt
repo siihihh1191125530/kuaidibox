@@ -6,8 +6,8 @@ import com.example.expresshelper.data.local.dao.ExpressDao
 import com.example.expresshelper.data.local.entity.ExpressEntity
 
 @Database(
-    entities = [ExpressEntity::class],
-    version = 1,
+    entities = [ExpressEntity::class, com.example.expresshelper.data.local.entity.SmsReceipt::class],
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

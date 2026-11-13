@@ -24,7 +24,7 @@ class KeywordsPreferences @Inject constructor(
      */
     fun getCustomKeywords(): Set<String> {
         val saved = prefs.getStringSet(KEY_CUSTOM_KEYWORDS, null)
-        return if (saved.isNullOrEmpty()) {
+        return if (saved == null) {
             // 如果没有保存过，返回默认关键字并保存
             DEFAULT_KEYWORDS.also { saveKeywords(it) }
         } else {
@@ -56,7 +56,7 @@ class KeywordsPreferences @Inject constructor(
      * 清空所有自定义关键字
      */
     fun clearCustomKeywords() {
-        prefs.edit().remove(KEY_CUSTOM_KEYWORDS).apply()
+        prefs.edit().putStringSet(KEY_CUSTOM_KEYWORDS, emptySet()).apply()
     }
 
     /**

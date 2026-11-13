@@ -45,11 +45,33 @@ interface ExpressDao {
 
     // 根据ID删除
     @Query("DELETE FROM express_info WHERE id = :id")
-    suspend fun deleteById(id: Long)
+    suspend fun deleteByIdRaw(id: Long)
+
+    @Transaction
+    suspend fun deleteById(id: Long) {
+        getExpressById(id)?.let { remember(it) }
+        deleteByIdRaw(id)
+    }
+
+    suspend fun remember(item: ExpressEntity) {
+        val key = com.example.expresshelper.data.sms.SmsFingerprint.of(item.smsSender, item.smsBody, item.code)
+        if (!hasReceipt(key, item.receivedTime - 120_000, item.receivedTime + 120_000)) {
+            insertReceipt(com.example.expresshelper.data.local.entity.SmsReceipt(contentKey = key, receivedTime = item.receivedTime))
+        }
+    }
 
     // 删除已取快递（清理超过指定天数的记录）
     @Query("DELETE FROM express_info WHERE status = 1 AND picked_time < :beforeTime")
-    suspend fun deletePickedBefore(beforeTime: Long)
+    suspend fun deletePickedBeforeRaw(beforeTime: Long)
+
+    @Query("SELECT * FROM express_info WHERE status = 1 AND picked_time < :beforeTime")
+    suspend fun pickedBefore(beforeTime: Long): List<ExpressEntity>
+
+    @Transaction
+    suspend fun deletePickedBefore(beforeTime: Long) {
+        pickedBefore(beforeTime).forEach { remember(it) }
+        deletePickedBeforeRaw(beforeTime)
+    }
 
     // 获取待取数量
     @Query("SELECT COUNT(*) FROM express_info WHERE status = 0")
@@ -73,20 +95,28 @@ interface ExpressDao {
     @Query("SELECT COUNT(*) FROM express_info WHERE code = :code")
     suspend fun countByCode(code: String): Int
 
-    // 删除重复的快递记录（保留ID最小的那条）
-    @Query("""
-        DELETE FROM express_info
-        WHERE id NOT IN (
-            SELECT MIN(id) FROM express_info
-            WHERE code IN (
-                SELECT code FROM express_info
-                GROUP BY code
-                HAVING COUNT(*) > 1
-            )
-            GROUP BY code
-        )
-    """)
+    // Only exact duplicates. Never group unrelated parcels by pickup code alone.
+    @Query("DELETE FROM express_info WHERE id NOT IN (SELECT MIN(id) FROM express_info GROUP BY code, sms_sender, sms_body, received_time, status)")
     suspend fun deleteDuplicateExpress()
+
+    @Query("SELECT EXISTS(SELECT 1 FROM sms_receipts WHERE contentKey = :key AND receivedTime BETWEEN :start AND :end)")
+    suspend fun hasReceipt(key: String, start: Long, end: Long): Boolean
+
+    @Query("SELECT EXISTS(SELECT 1 FROM express_info WHERE code = :code AND sms_body = :body AND sms_sender = :sender AND received_time BETWEEN :start AND :end)")
+    suspend fun hasLegacy(code: String, body: String, sender: String, start: Long, end: Long): Boolean
+
+    @Insert
+    suspend fun insertReceipt(receipt: com.example.expresshelper.data.local.entity.SmsReceipt)
+
+    @Transaction
+    suspend fun ingest(entity: ExpressEntity, key: String): Long {
+        val start = entity.receivedTime - 120_000L
+        val end = entity.receivedTime + 120_000L
+        if (hasReceipt(key, start, end)) return -1
+        insertReceipt(com.example.expresshelper.data.local.entity.SmsReceipt(contentKey = key, receivedTime = entity.receivedTime))
+        if (hasLegacy(entity.code, entity.smsBody, entity.smsSender, start, end)) return -1
+        return insertExpress(entity)
+    }
 
     // 获取所有快递（用于小组件，直接返回列表）
     @Query("SELECT * FROM express_info ORDER BY received_time DESC")
@@ -102,5 +132,11 @@ interface ExpressDao {
 
     // 清空所有数据
     @Query("DELETE FROM express_info")
-    suspend fun deleteAll()
+    suspend fun deleteAllRaw()
+
+    @Transaction
+    suspend fun deleteAll() {
+        getAllExpressForWidget().forEach { remember(it) }
+        deleteAllRaw()
+    }
 }

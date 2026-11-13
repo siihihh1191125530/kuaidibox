@@ -16,69 +16,50 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeout
 
 class ExpressWidgetProvider : AppWidgetProvider() {
 
     companion object {
+        private val updateLock = Mutex()
         const val ACTION_NEXT = "com.example.expresshelper.ACTION_NEXT"
         const val ACTION_TOGGLE = "com.example.expresshelper.ACTION_TOGGLE"
         const val EXTRA_CURRENT_INDEX = "current_index"
     }
 
-    override fun onUpdate(
-        context: Context,
-        appWidgetManager: AppWidgetManager,
-        appWidgetIds: IntArray
-    ) {
-        for (appWidgetId in appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId, 0)
-        }
-    }
-
     override fun onReceive(context: Context, intent: Intent) {
-        super.onReceive(context, intent)
-        val appWidgetManager = AppWidgetManager.getInstance(context)
-        val appWidgetIds = appWidgetManager.getAppWidgetIds(
-            ComponentName(context, ExpressWidgetProvider::class.java)
-        )
-
-        when (intent.action) {
-            ACTION_NEXT -> {
-                val currentIndex = intent.getIntExtra(EXTRA_CURRENT_INDEX, 0)
-                for (appWidgetId in appWidgetIds) {
-                    updateAppWidget(context, appWidgetManager, appWidgetId, currentIndex)
+        val actions = setOf(AppWidgetManager.ACTION_APPWIDGET_UPDATE, ACTION_NEXT, ACTION_TOGGLE,
+            AppWidgetManager.ACTION_APPWIDGET_OPTIONS_CHANGED)
+        if (intent.action !in actions) { super.onReceive(context, intent); return }
+        val pending = goAsync()
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                withTimeout(8_000) { updateLock.withLock {
+                val manager = AppWidgetManager.getInstance(context)
+                val ids = manager.getAppWidgetIds(ComponentName(context, ExpressWidgetProvider::class.java))
+                val selected = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1)
+                if (intent.action == ACTION_TOGGLE) {
+                    val dao = EntryPointAccessors.fromApplication(context.applicationContext, ExpressWidgetEntryPoint::class.java).expressDao()
+                    val id = intent.getLongExtra("express_id", -1)
+                    dao.getExpressById(id)?.let { if (it.status == 0) dao.markAsPicked(id) else dao.markAsPending(id) }
                 }
-            }
-            ACTION_TOGGLE -> {
-                val expressId = intent.getLongExtra("express_id", -1)
-                val currentIndex = intent.getIntExtra(EXTRA_CURRENT_INDEX, 0)
-                if (expressId != -1L) {
-                    // 直接在provider中处理toggle
-                    CoroutineScope(Dispatchers.IO).launch {
-                        val entryPoint = EntryPointAccessors.fromApplication(
-                            context.applicationContext,
-                            ExpressWidgetEntryPoint::class.java
-                        )
-                        val express = entryPoint.expressDao().getExpressById(expressId)
-                        if (express != null) {
-                            if (express.status == 0) {
-                                entryPoint.expressDao().markAsPicked(expressId)
-                            } else {
-                                entryPoint.expressDao().markAsPending(expressId)
-                            }
-                        }
-                        // 刷新所有小组件
-                        for (appWidgetId in appWidgetIds) {
-                            updateAppWidget(context, appWidgetManager, appWidgetId, currentIndex)
-                        }
-                    }
+                val prefs = context.getSharedPreferences("widget_pages", Context.MODE_PRIVATE)
+                for (id in ids) {
+                    val index = if (id == selected && intent.action == ACTION_NEXT) intent.getIntExtra(EXTRA_CURRENT_INDEX, 0)
+                        else prefs.getInt("page_$id", 0)
+                    prefs.edit().putInt("page_$id", index).apply()
+                    updateAppWidget(context, manager, id, index)
                 }
-            }
+                } }
+            } catch (_: Exception) {
+                android.util.Log.w("ExpressWidget", "Widget update failed")
+            } finally { pending.finish() }
         }
     }
 
-    private fun updateAppWidget(
+    private suspend fun updateAppWidget(
         context: Context,
         appWidgetManager: AppWidgetManager,
         appWidgetId: Int,
@@ -89,7 +70,7 @@ class ExpressWidgetProvider : AppWidgetProvider() {
         // 获取小组件快递数据（待取 + 1天内已取）
         val oneDayAgo = System.currentTimeMillis() - 24 * 60 * 60 * 1000L
         val widgetList = try {
-            runBlocking {
+            run {
                 val entryPoint = EntryPointAccessors.fromApplication(
                     context.applicationContext,
                     ExpressWidgetEntryPoint::class.java
@@ -109,7 +90,7 @@ class ExpressWidgetProvider : AppWidgetProvider() {
             views.setTextViewText(R.id.tv_time, "")
             views.setTextViewText(R.id.tv_station, "")
         } else {
-            val displayIndex = currentIndex % widgetList.size
+            val displayIndex = currentIndex.coerceAtLeast(0) % widgetList.size
             val item = widgetList[displayIndex]
             val nextIndex = (displayIndex + 1) % widgetList.size
 
@@ -140,6 +121,7 @@ class ExpressWidgetProvider : AppWidgetProvider() {
             val nextIntent = Intent(context, ExpressWidgetProvider::class.java).apply {
                 action = ACTION_NEXT
                 putExtra(EXTRA_CURRENT_INDEX, nextIndex)
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
             }
             val nextPendingIntent = PendingIntent.getBroadcast(
                 context,
@@ -154,6 +136,7 @@ class ExpressWidgetProvider : AppWidgetProvider() {
                 action = ACTION_TOGGLE
                 putExtra("express_id", item.id)
                 putExtra(EXTRA_CURRENT_INDEX, displayIndex)
+                putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
             }
             val togglePendingIntent = PendingIntent.getBroadcast(
                 context,
@@ -164,6 +147,11 @@ class ExpressWidgetProvider : AppWidgetProvider() {
             views.setOnClickPendingIntent(R.id.indicator_container, togglePendingIntent)
         }
 
+        val open = PendingIntent.getActivity(context, appWidgetId,
+            Intent(context, com.example.expresshelper.presentation.main.MainActivity::class.java),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        views.setOnClickPendingIntent(R.id.tv_station, open)
+        if (widgetList.isEmpty()) views.setOnClickPendingIntent(R.id.tv_code, open)
         appWidgetManager.updateAppWidget(appWidgetId, views)
     }
 }

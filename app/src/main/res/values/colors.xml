@@ -1,13 +1,12 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <color name="colorPrimary">#333333</color>
-    <color name="colorPrimaryDark">#1A1A1A</color>
-    <color name="colorAccent">#4CAF50</color>
-    <color name="white">#FFFFFF</color>
-    <color name="textPrimary">#1A1A1A</color>
-    <color name="textSecondary">#666666</color>
-    <color name="textHint">#999999</color>
-    <color name="divider">#E0E0E0</color>
-    <color name="background">#F5F5F5</color>
-    <color name="cardBackground">#FFFFFF</color>
-</resources>
+<resources><color name="colorPrimary">#2458C6</color>
+<color name="colorPrimaryDark">#163D91</color>
+<color name="colorAccent">#2458C6</color>
+<color name="white">#FFFFFF</color>
+<color name="textPrimary">#152744</color>
+<color name="textSecondary">#51627C</color>
+<color name="textHint">#65748A</color>
+<color name="divider">#DAE2EE</color>
+<color name="background">#F1F5FB</color>
+<color name="cardBackground">#FFFFFF</color>
+<color name="softBlue">#E2ECFF</color>
+<color name="success">#247454</color></resources>

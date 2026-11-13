@@ -73,8 +73,8 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         // 无障碍权限
-        binding.itemAccessibility.setOnClickListener {
-            openAccessibilitySettings()
+        binding.itemSms.setOnClickListener {
+            openSmsSettings()
         }
 
         // 管理快递
@@ -258,7 +258,7 @@ class SettingsActivity : AppCompatActivity() {
     private fun showAboutDialog() {
         MaterialAlertDialogBuilder(this)
             .setTitle("关于快递盒")
-            .setMessage("版本: 1.0.0\n\n一款简洁实用的快递管理工具，自动识别短信中的快递信息，桌面小组件快速查看待取快递。")
+            .setMessage("版本: 1.0（重制版）\n\n一款简洁实用的快递管理工具，自动识别短信中的快递信息，桌面小组件快速查看待取快递。")
             .setPositiveButton("确定", null)
             .show()
     }
@@ -267,9 +267,9 @@ class SettingsActivity : AppCompatActivity() {
         val helpText = """
             |📱 快速开始
             |
-            |1. 开启无障碍权限
-            |   设置 → 无障碍 → 找到"快递盒" → 开启
-            |   （用于自动读取通知栏快递短信）
+            |1. 开启短信自动识别
+            |   设置 → 短信与运行状态 → 允许接收短信
+            |   开启补查后，首次会检查最近 7 天短信
             |
             |2. 添加关键字（可选）
             |   默认已内置常见关键字，如需识别其他短信可自定义添加
@@ -298,13 +298,8 @@ class SettingsActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun openAccessibilitySettings() {
-        try {
-            val intent = Intent("android.settings.ACCESSIBILITY_SETTINGS")
-            startActivity(intent)
-        } catch (e: Exception) {
-            showMessage("无法打开无障碍设置，请手动在设置中开启")
-        }
+    private fun openSmsSettings() {
+        startActivity(Intent(this, SmsSettingsActivity::class.java))
     }
 
     private fun showMessage(message: String) {

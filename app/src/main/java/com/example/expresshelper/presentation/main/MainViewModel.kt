@@ -64,7 +64,7 @@ class MainViewModel @Inject constructor(
             try {
                 expressRepository.deleteById(expressId)
             } catch (e: Exception) {
-                // 忽略删除错误
+                _operationState.value = OperationState.Error("删除失败，请重试")
             }
         }
     }

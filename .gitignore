@@ -1,0 +1,9 @@
+.gradle/
+**/build/
+local.properties
+.idea/
+*.jks
+*.keystore
+captures/
+*.log
+docs/screenshots/ui.xml

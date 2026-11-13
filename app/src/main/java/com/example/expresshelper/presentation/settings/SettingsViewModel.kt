@@ -45,7 +45,7 @@ class SettingsViewModel @Inject constructor(
 
     fun clearPickedExpress() {
         viewModelScope.launch {
-            val oneWeekAgo = System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000
+            val oneWeekAgo = System.currentTimeMillis()
             expressRepository.deletePickedBefore(oneWeekAgo)
             _uiState.value = _uiState.value.copy(message = "已清理已取快递记录")
             WidgetUpdater.update(context)

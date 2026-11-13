@@ -13,7 +13,7 @@ android {
         applicationId = "com.example.expresshelper"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
+        versionCode = 2
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -37,6 +37,8 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+
+    testOptions { unitTests.isIncludeAndroidResources = true }
 
     buildFeatures {
         viewBinding = true
@@ -69,8 +71,13 @@ dependencies {
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+
     // Testing
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.12.2")
+    testImplementation("androidx.test:core:1.5.0")
+    testImplementation("androidx.room:room-testing:2.6.1")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")

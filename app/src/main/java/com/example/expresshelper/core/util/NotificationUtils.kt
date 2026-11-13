@@ -74,6 +74,7 @@ class NotificationUtils @Inject constructor(
             .setContentText("取件码: $code ($source)")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(pendingIntent)
+            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
             .setAutoCancel(true)
             .build()
 

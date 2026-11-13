@@ -14,6 +14,13 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
+    val MIGRATION_1_2 = object : androidx.room.migration.Migration(1, 2) {
+                override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                    db.execSQL("CREATE TABLE IF NOT EXISTS sms_receipts (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, contentKey TEXT NOT NULL, receivedTime INTEGER NOT NULL)")
+                    db.execSQL("CREATE INDEX IF NOT EXISTS index_sms_receipts_contentKey_receivedTime ON sms_receipts(contentKey, receivedTime)")
+                }
+            }
+
 
     @Provides
     @Singleton
@@ -25,7 +32,7 @@ object DatabaseModule {
             AppDatabase::class.java,
             "express_helper.db"
         )
-            .fallbackToDestructiveMigration()
+            .addMigrations(MIGRATION_1_2)
             .build()
     }
 
