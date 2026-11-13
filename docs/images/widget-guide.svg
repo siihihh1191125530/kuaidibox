@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="310" viewBox="0 0 1000 310" role="img" aria-labelledby="title desc">
+  <title id="title">快递盒桌面小组件操作示意</title>
+  <desc id="desc">红色圆点表示待取，点击切换取件状态。中间显示取件码，点击翻到下一条。右侧显示页码、接收时间和驿站名称，点击驿站打开应用。</desc>
+  <rect width="1000" height="310" rx="24" fill="#F1F5FB"/>
+  <g font-family="sans-serif">
+    <text x="50" y="44" font-size="18" fill="#51627C">桌面小组件 · 操作示意</text>
+    <rect x="50" y="70" width="900" height="130" fill="#FFFFFF" stroke="#DAE2EE"/>
+    <circle cx="162" cy="135" r="13" fill="#F44336"/>
+    <text x="500" y="153" text-anchor="middle" font-family="monospace" font-size="49" font-weight="700" fill="#000000">A-12-3456</text>
+    <g text-anchor="middle" fill="#000000">
+      <text x="837" y="107" font-size="20" font-weight="700">1/3</text>
+      <text x="837" y="139" font-size="20" font-weight="700">14:30</text>
+      <text x="837" y="171" font-size="17" fill="#666666">菜鸟驿站</text>
+    </g>
+    <g stroke="#A7B9D5" stroke-width="2">
+      <path d="M162 207v20M500 207v20M837 207v20"/>
+    </g>
+    <g text-anchor="middle" font-size="19" fill="#152744">
+      <text x="162" y="256">点圆点 · 切换取件状态</text>
+      <text x="500" y="256">点号码 · 翻看下一条</text>
+      <text x="837" y="256">点驿站 · 打开应用</text>
+    </g>
+    <text x="50" y="289" font-size="14" fill="#51627C">红色：待取　绿色：已取　｜　示例数据，实际占位以手机桌面为准</text>
+  </g>
+</svg>
